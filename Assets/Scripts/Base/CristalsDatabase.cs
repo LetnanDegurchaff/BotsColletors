@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
-public class CristalsDataBase
+public class CristalsDatabase
 {
     private readonly HashSet<Crystal> _crystals = new();
     

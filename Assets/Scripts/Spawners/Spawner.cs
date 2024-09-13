@@ -3,23 +3,28 @@ using UnityEngine;
 public class Spawner<T> : MonoBehaviour where T : PoolableObject<T>
 {
     [SerializeField] private T _objectPrefab;
-    private UnlimitPool<T> _pool;
+    private Pool<T> _pool; 
     
     protected int ActiveObjectsCount { get; private set; }
 
     private void Awake()
     {
-        _pool = new UnlimitPool<T>(() =>
-            Instantiate(_objectPrefab, transform.position, Quaternion.identity, transform));
-
-        foreach (var @object in _pool.AllObjects) 
-            @object.gameObject.SetActive(false);
+        _pool = new Pool<T>();
     }
 
-    public T Spawn(Vector3 position, Quaternion rotation = new())
+    public void Spawn(Vector3 position, Quaternion rotation = new())
     {
-        ActiveObjectsCount++;
-        T newObject = _pool.Get();
+        T newObject;
+        
+        if (_pool.AvailableObjectsCount == 0)
+        {
+            newObject = Instantiate(_objectPrefab, position, rotation);
+            _pool.BindObject(newObject);
+        }
+        else
+        {
+            newObject = _pool.GetObject();
+        }
         
         newObject.transform.position = position;
         newObject.transform.rotation = rotation;
@@ -27,7 +32,7 @@ public class Spawner<T> : MonoBehaviour where T : PoolableObject<T>
         newObject.gameObject.SetActive(true);
         newObject.Init();
         
-        return newObject;
+        ActiveObjectsCount++;
     }
 
     private void Release(T objectToRelease)
@@ -35,6 +40,6 @@ public class Spawner<T> : MonoBehaviour where T : PoolableObject<T>
         objectToRelease.Disabled -= Release; 
         ActiveObjectsCount--;
         objectToRelease.gameObject.SetActive(false);
-        _pool.Realease(objectToRelease);
+        _pool.Release(objectToRelease);
     }
 }

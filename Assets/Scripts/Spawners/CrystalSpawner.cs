@@ -4,11 +4,9 @@ using UnityEngine;
 public class CrystalSpawner : Spawner<Crystal>
 {
     [SerializeField] private float _maxCristalsCount = 10;
-    
     [SerializeField] private Collider _collider;
-    [SerializeField] private Collider _cristalCollider;
-    
     [SerializeField] private float _spawnDelay;
+    
     private WaitForSeconds _delay;
     
     private void OnValidate()

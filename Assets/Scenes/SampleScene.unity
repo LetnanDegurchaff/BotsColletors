@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18027729, g: 0.2257071, b: 0.3069196, a: 1}
+  m_IndirectSpecularColor: {r: 0.18027619, g: 0.22570492, b: 0.30691814, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -883,8 +883,6 @@ MonoBehaviour:
     type: 3}
   _maxCristalsCount: 300
   _collider: {fileID: 2040876454}
-  _cristalCollider: {fileID: 5226777927480613840, guid: f910149ab875a154183d1960f589b780,
-    type: 3}
   _spawnDelay: 0.5
 --- !u!1001 &8792723740266150943
 PrefabInstance:
@@ -923,6 +921,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: View
+      objectReference: {fileID: 0}
+    - target: {fileID: 4641827844645524664, guid: 989a75bc33a4cb348a23c068779ea40c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6243107671022189502, guid: 989a75bc33a4cb348a23c068779ea40c,
         type: 3}

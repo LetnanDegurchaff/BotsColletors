@@ -2,60 +2,57 @@ using System;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Serialization;
 
+[RequireComponent(typeof(CrystalsScanner))]
 public class Base : MonoBehaviour
 {
-    [SerializeField] private float _scanDelay = 1;
-    private WaitForSeconds _delay;
-
+    [SerializeField] private float _scanDelayTime = 1;
     [SerializeField] private Bot _botPrefab;
-    [SerializeField] private int _botsCount = 0;
+    [SerializeField] private uint _botsCount = 3;
     
-    private Pool<Bot> _botsPool;
+    private BotGaragge _botGaragge;
     
-    private CristalsDataBase _crystalsDataBase = new();
+    private CristalsDatabase _crystalsDatabase = new();
     private CrystalsScanner _crystalsScanner;
+    
+    private WaitForSeconds _scanDelay;
 
     public event Action<ulong> CrystalCountChanged;
     
     public ulong CrystalsCount { get; private set; }
     
-    private void OnValidate()
-    {
-        _delay = new WaitForSeconds(_scanDelay);
-        _crystalsScanner = GetComponent<CrystalsScanner>();
-    }
-    
     private void Awake()
     {
-        _botsPool = new Pool<Bot>(
-            () => Instantiate(_botPrefab, transform.position, Quaternion.identity, transform).Init(transform), 
-            _botsCount);
+        _crystalsScanner = GetComponent<CrystalsScanner>();
+        _scanDelay = new WaitForSeconds(_scanDelayTime);
+        
+        _botGaragge = new BotGaragge(_botPrefab, transform, _botsCount);
     }
 
     private void OnEnable()
     {
-        StartCoroutine(ScanCrystals());
+        StartCoroutine(ExtractCrystals());
     }
 
-    private void ExtractCrystals()
+    private void SendBotsByCrystals()
     {
-        if (_botsPool.Count == 0)
+        if (_botGaragge.HaveFreeBots == false)
             return;
         
         var crystals = _crystalsScanner.Scan();
         
-        crystals = _crystalsDataBase.GetFreeCrystals(crystals)
-            .OrderBy(crystal => Vector3.Distance(crystal.transform.position, transform.position));
+        crystals = _crystalsDatabase.GetFreeCrystals(crystals)
+            .OrderBy(crystal => (crystal.transform.position - transform.position).sqrMagnitude);
 
         if (crystals.Any() == false)
             return;
 
         foreach (var crystal in crystals)
         {
-            if (_botsPool.TryGetObject(out Bot bot))
+            if (_botGaragge.TryGetBot(out Bot bot))
             {
-                _crystalsDataBase.ReserveCrystal(crystal);
+                _crystalsDatabase.ReserveCrystal(crystal);
                 bot.ReachCristal(crystal);
                 bot.CristalDelivered += ReceiveCrystal;
             }
@@ -70,19 +67,19 @@ public class Base : MonoBehaviour
     {
         bot.CristalDelivered -= ReceiveCrystal;
         
-        _crystalsDataBase.RemoveReservation(crystal);
+        _crystalsDatabase.RemoveReservation(crystal);
         CrystalCountChanged.Invoke(++CrystalsCount);
         
-        _botsPool.Realease(bot);
+        _botGaragge.Realease(bot);
     }
     
-    private IEnumerator ScanCrystals()
+    private IEnumerator ExtractCrystals()
     {
         while (true)
         {
-            yield return _delay;
+            yield return _scanDelay;
 
-            ExtractCrystals();
+            SendBotsByCrystals();
         }
     }
 }
